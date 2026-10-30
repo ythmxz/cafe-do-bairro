@@ -7,7 +7,6 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
-  "packageManager": "pnpm@10.34.9",
   "dependencies": {
     "zod": "^4.6.7"
   },
