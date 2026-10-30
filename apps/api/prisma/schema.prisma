@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Status {
+  RECEBIDA
+  PREPARO
+  ENTREGUE
+}
+
+model Encomenda {
+  id          Int      @id @default(autoincrement())
+  cliente     String
+  telefone    String
+  produto     String
+  dataEntrega DateTime @db.Date
+  status      Status   @default(RECEBIDA)
+  criadaEm    DateTime @default(now())
+
+  @@index([dataEntrega])
+  @@map("encomendas")
+}
