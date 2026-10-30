@@ -1,0 +1,9 @@
+{
+  "name": "cafe-do-bairro",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "test": "pnpm -r test"
+  },
+  "packageManager": "pnpm@10.34.9"
+}
