@@ -9,6 +9,7 @@ import { prisma } from "./db";
 import { hojeNoBrasil, paraData, paraTexto } from "./datas";
 import { ErroHttp, naoEncontrado, validar } from "./erros";
 import { reservarVaga } from "./limite";
+import { exigirSenha } from "./auth";
 
 const paramsSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -38,21 +39,25 @@ function garantirDataNaoPassada(data: string): void {
 }
 
 export async function encomendasRoutes(app: FastifyInstance) {
-  app.post("/", async (req, reply) => {
-    const dados = validar(novaEncomendaSchema, req.body);
-    garantirDataNaoPassada(dados.dataEntrega);
+  app.post(
+    "/",
+    { config: { rateLimit: { max: 20, timeWindow: "1 minute" } } },
+    async (req, reply) => {
+      const dados = validar(novaEncomendaSchema, req.body);
+      garantirDataNaoPassada(dados.dataEntrega);
 
-    const criada = await prisma.$transaction(async (tx) => {
-      await reservarVaga(tx, dados.dataEntrega);
-      return tx.encomenda.create({
-        data: { ...dados, dataEntrega: paraData(dados.dataEntrega) },
+      const criada = await prisma.$transaction(async (tx) => {
+        await reservarVaga(tx, dados.dataEntrega);
+        return tx.encomenda.create({
+          data: { ...dados, dataEntrega: paraData(dados.dataEntrega) },
+        });
       });
-    });
 
-    return reply.code(201).send(serializar(criada));
-  });
+      return reply.code(201).send(serializar(criada));
+    },
+  );
 
-  app.get("/", async (req) => {
+  app.get("/", { onRequest: exigirSenha }, async (req) => {
     const filtro = validar(filtroSchema, req.query);
 
     const encomendas = await prisma.encomenda.findMany({
@@ -66,7 +71,7 @@ export async function encomendasRoutes(app: FastifyInstance) {
     return encomendas.map(serializar);
   });
 
-  app.patch("/:id", async (req) => {
+  app.patch("/:id", { onRequest: exigirSenha }, async (req) => {
     const { id } = validar(paramsSchema, req.params);
     const dados = validar(atualizarEncomendaSchema, req.body);
     if (dados.dataEntrega) garantirDataNaoPassada(dados.dataEntrega);
@@ -101,7 +106,7 @@ export async function encomendasRoutes(app: FastifyInstance) {
     }
   });
 
-  app.delete("/:id", async (req, reply) => {
+  app.delete("/:id", { onRequest: exigirSenha }, async (req, reply) => {
     const { id } = validar(paramsSchema, req.params);
 
     try {

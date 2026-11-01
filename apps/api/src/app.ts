@@ -1,9 +1,26 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import { LIMITE_DIARIO } from "@cafe/shared";
+import { disponibilidadeRoutes } from "./disponibilidade";
 import { encomendasRoutes } from "./encomendas";
 import { ErroHttp } from "./erros";
-import { disponibilidadeRoutes } from "./disponibilidade";
+
+function statusDoErro(erro: unknown): number {
+  if (
+    typeof erro === "object" &&
+    erro !== null &&
+    "statusCode" in erro &&
+    typeof erro.statusCode === "number"
+  ) {
+    return erro.statusCode;
+  }
+  return 500;
+}
+
+function mensagemDoErro(erro: unknown): string {
+  return erro instanceof Error ? erro.message : "Requisição inválida";
+}
 
 export function buildApp() {
   const app = Fastify({ logger: true });
@@ -13,6 +30,8 @@ export function buildApp() {
     methods: ["GET", "POST", "PATCH", "DELETE"],
   });
 
+  app.register(rateLimit, { global: false });
+
   app.setErrorHandler((erro, _req, reply) => {
     if (erro instanceof ErroHttp) {
       return reply
@@ -20,11 +39,11 @@ export function buildApp() {
         .send({ erro: erro.message, detalhes: erro.detalhes });
     }
 
-    const status = erro.statusCode ?? 500;
+    const status = statusDoErro(erro);
     if (status >= 500) app.log.error(erro);
 
     return reply.code(status).send({
-      erro: status >= 500 ? "Erro interno do servidor" : erro.message,
+      erro: status >= 500 ? "Erro interno do servidor" : mensagemDoErro(erro),
     });
   });
 
