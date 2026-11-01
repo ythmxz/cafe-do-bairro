@@ -7,21 +7,23 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Status {
+enum OrderStatus {
   RECEBIDA
   PREPARO
   ENTREGUE
+
+  @@map("order_status")
 }
 
-model Encomenda {
-  id          Int      @id @default(autoincrement())
-  cliente     String
-  telefone    String
-  produto     String
-  dataEntrega DateTime @db.Date
-  status      Status   @default(RECEBIDA)
-  criadaEm    DateTime @default(now())
+model Order {
+  id           Int         @id @default(autoincrement())
+  customer     String
+  phone        String
+  product      String
+  deliveryDate DateTime    @map("delivery_date") @db.Date
+  status       OrderStatus @default(RECEBIDA)
+  createdAt    DateTime    @default(now()) @map("created_at")
 
-  @@index([dataEntrega])
-  @@map("encomendas")
+  @@index([deliveryDate])
+  @@map("orders")
 }

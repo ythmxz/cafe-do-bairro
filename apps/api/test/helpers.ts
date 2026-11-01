@@ -1,47 +1,41 @@
-import { buildApp } from "../src/app";
-import { hojeNoBrasil, paraTexto } from "../src/datas";
+import type { FastifyInstance } from "fastify";
+import type { CreateOrderInput } from "@cafe/shared";
+import { buildApp, type AppOptions } from "../src/app";
+import { toIsoDate, todayInBrazil } from "../src/dates";
 import { prisma } from "../src/db";
-import { TOKEN_TESTE } from "./ambiente";
+import { TEST_ADMIN_TOKEN } from "./env";
 
 export { prisma };
 
-export const comSenha: Record<string, string> = {
-  authorization: `Bearer ${TOKEN_TESTE}`,
+export type OrderBody = CreateOrderInput;
+export type App = FastifyInstance;
+
+export const authHeaders: Record<string, string> = {
+  authorization: `Bearer ${TEST_ADMIN_TOKEN}`,
 };
 
-export type CorpoEncomenda = {
-  cliente: string;
-  telefone: string;
-  produto: string;
-  dataEntrega: string;
-};
-
-export function diaFuturo(dias: number): string {
-  const data = new Date(`${hojeNoBrasil()}T00:00:00.000Z`);
-  data.setUTCDate(data.getUTCDate() + dias);
-  return paraTexto(data);
+export function daysFromToday(days: number): string {
+  const date = new Date(`${todayInBrazil()}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return toIsoDate(date);
 }
 
-export function umaEncomenda(
-  extra: Partial<CorpoEncomenda> = {},
-): CorpoEncomenda {
+export function buildOrder(extra: Partial<OrderBody> = {}): OrderBody {
   return {
     cliente: "Maria",
     telefone: "(73) 99999-9999",
     produto: "Bolo de cenoura",
-    dataEntrega: diaFuturo(10),
+    dataEntrega: daysFromToday(10),
     ...extra,
   };
 }
 
-export type App = Awaited<ReturnType<typeof iniciarApp>>;
-
-export async function iniciarApp(opcoes: Parameters<typeof buildApp>[0] = {}) {
-  const app = buildApp({ limitarRequisicoes: false, ...opcoes });
+export async function startApp(options: AppOptions = {}): Promise<App> {
+  const app = buildApp({ rateLimit: false, ...options });
   await app.ready();
   return app;
 }
 
-export async function limparBanco(): Promise<void> {
-  await prisma.encomenda.deleteMany();
+export async function resetDatabase(): Promise<void> {
+  await prisma.order.deleteMany();
 }

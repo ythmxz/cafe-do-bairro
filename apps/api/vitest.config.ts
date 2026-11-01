@@ -1,12 +1,12 @@
 import { defineConfig } from "vitest/config";
-import { TOKEN_TESTE, URL_BANCO_TESTE } from "./test/ambiente.ts";
+import { TEST_ADMIN_TOKEN, TEST_DB_URL } from "./test/env.ts";
 
 export default defineConfig({
   test: {
     globalSetup: ["./test/global-setup.ts"],
     env: {
-      DATABASE_URL: URL_BANCO_TESTE,
-      ADMIN_TOKEN: TOKEN_TESTE,
+      DATABASE_URL: TEST_DB_URL,
+      ADMIN_TOKEN: TEST_ADMIN_TOKEN,
     },
     fileParallelism: false,
   },

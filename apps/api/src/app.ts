@@ -1,30 +1,28 @@
-import Fastify from "fastify";
+import Fastify, { type FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
-import { LIMITE_DIARIO } from "@cafe/shared";
-import { disponibilidadeRoutes } from "./disponibilidade";
-import { encomendasRoutes } from "./encomendas";
-import { ErroHttp } from "./erros";
+import { type ApiError } from "@cafe/shared";
+import { availabilityRoutes } from "./availability";
+import { HttpError } from "./errors";
+import { orderRoutes } from "./orders";
 
-function statusDoErro(erro: unknown): number {
+export type AppOptions = {
+  rateLimit?: boolean;
+};
+
+function getStatusCode(error: unknown): number {
   if (
-    typeof erro === "object" &&
-    erro !== null &&
-    "statusCode" in erro &&
-    typeof erro.statusCode === "number"
+    typeof error === "object" &&
+    error !== null &&
+    "statusCode" in error &&
+    typeof error.statusCode === "number"
   ) {
-    return erro.statusCode;
+    return error.statusCode;
   }
   return 500;
 }
 
-function mensagemDoErro(erro: unknown): string {
-  return erro instanceof Error ? erro.message : "Requisição inválida";
-}
-
-type OpcoesDoApp = { limitarRequisicoes?: boolean };
-
-export function buildApp(opcoes: OpcoesDoApp = {}) {
+export function buildApp(options: AppOptions = {}): FastifyInstance {
   const app = Fastify({ logger: process.env.NODE_ENV !== "test" });
 
   app.register(cors, {
@@ -34,28 +32,40 @@ export function buildApp(opcoes: OpcoesDoApp = {}) {
 
   app.register(rateLimit, {
     global: false,
-    allowList: () => opcoes.limitarRequisicoes === false,
+    allowList: () => options.rateLimit === false,
+    errorResponseBuilder: () =>
+      new HttpError(
+        429,
+        "Muitas tentativas em pouco tempo. Aguarde um minuto e tente de novo.",
+      ),
   });
 
-  app.setErrorHandler((erro, _req, reply) => {
-    if (erro instanceof ErroHttp) {
-      return reply
-        .code(erro.status)
-        .send({ erro: erro.message, detalhes: erro.detalhes });
+  app.setErrorHandler((error, _request, reply) => {
+    if (error instanceof HttpError) {
+      const body: ApiError = { erro: error.message, detalhes: error.details };
+      return reply.code(error.statusCode).send(body);
     }
 
-    const status = statusDoErro(erro);
-    if (status >= 500) app.log.error(erro);
+    const statusCode = getStatusCode(error);
+    if (statusCode >= 500) {
+      app.log.error(error);
+      const body: ApiError = { erro: "Erro interno do servidor" };
+      return reply.code(500).send(body);
+    }
 
-    return reply.code(status).send({
-      erro: status >= 500 ? "Erro interno do servidor" : mensagemDoErro(erro),
-    });
+    const body: ApiError = { erro: "Requisição inválida" };
+    return reply.code(statusCode).send(body);
   });
 
-  app.get("/saude", async () => ({ ok: true, limiteDiario: LIMITE_DIARIO }));
+  app.setNotFoundHandler((_request, reply) => {
+    const body: ApiError = { erro: "Rota não encontrada" };
+    return reply.code(404).send(body);
+  });
 
-  app.register(encomendasRoutes, { prefix: "/encomendas" });
-  app.register(disponibilidadeRoutes, { prefix: "/disponibilidade" });
+  app.get("/saude", async () => ({ ok: true }));
+
+  app.register(orderRoutes, { prefix: "/encomendas" });
+  app.register(availabilityRoutes, { prefix: "/disponibilidade" });
 
   return app;
 }

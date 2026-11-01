@@ -1,19 +1,19 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
-  comSenha,
-  diaFuturo,
-  iniciarApp,
-  limparBanco,
+  authHeaders,
+  buildOrder,
+  daysFromToday,
   prisma,
-  umaEncomenda,
+  resetDatabase,
+  startApp,
   type App,
-  type CorpoEncomenda,
+  type OrderBody,
 } from "./helpers";
 
 let app: App;
 
 beforeAll(async () => {
-  app = await iniciarApp();
+  app = await startApp();
 });
 
 afterAll(async () => {
@@ -21,56 +21,58 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-beforeEach(limparBanco);
+beforeEach(resetDatabase);
 
-function criar(corpo: object = umaEncomenda()) {
-  return app.inject({ method: "POST", url: "/encomendas", payload: corpo });
+function createOrder(body: object = buildOrder()) {
+  return app.inject({ method: "POST", url: "/encomendas", payload: body });
 }
 
-function atualizar(id: number, corpo: object) {
+function updateOrder(id: number, body: object) {
   return app.inject({
     method: "PATCH",
     url: `/encomendas/${id}`,
-    headers: comSenha,
-    payload: corpo,
+    headers: authHeaders,
+    payload: body,
   });
 }
 
 describe("criar encomenda", () => {
   it("cria, limpa o telefone e começa como RECEBIDA", async () => {
-    const res = await criar();
+    const res = await createOrder();
 
     expect(res.statusCode).toBe(201);
     expect(res.json()).toMatchObject({
       cliente: "Maria",
       telefone: "73999999999",
       produto: "Bolo de cenoura",
-      dataEntrega: diaFuturo(10),
+      dataEntrega: daysFromToday(10),
       status: "RECEBIDA",
     });
   });
 
   it("recusa um status enviado pelo cliente (400)", async () => {
-    const res = await criar({ ...umaEncomenda(), status: "ENTREGUE" });
+    const res = await createOrder({ ...buildOrder(), status: "ENTREGUE" });
 
     expect(res.statusCode).toBe(400);
-    expect(await prisma.encomenda.count()).toBe(0);
+    expect(await prisma.order.count()).toBe(0);
   });
 
-  it.each<[string, Partial<CorpoEncomenda>]>([
+  it.each<[string, Partial<OrderBody>]>([
     ["telefone curto demais", { telefone: "123" }],
-    ["data no passado", { dataEntrega: diaFuturo(-1) }],
+    ["data no passado", { dataEntrega: daysFromToday(-1) }],
     ["data que não existe", { dataEntrega: "2026-02-30" }],
     ["nome só com espaços", { cliente: "   " }],
-  ])("recusa %s (400) e não grava nada", async (_nome, extra) => {
-    const res = await criar(umaEncomenda(extra));
+    ["nome longo demais", { cliente: "A".repeat(101) }],
+    ["produto longo demais", { produto: "B".repeat(201) }],
+  ])("recusa %s (400) e não grava nada", async (_label, extra) => {
+    const res = await createOrder(buildOrder(extra));
 
     expect(res.statusCode).toBe(400);
-    expect(await prisma.encomenda.count()).toBe(0);
+    expect(await prisma.order.count()).toBe(0);
   });
 
   it("recusa um corpo sem os campos obrigatórios (400)", async () => {
-    const res = await criar({});
+    const res = await createOrder({});
 
     expect(res.statusCode).toBe(400);
     expect(res.json().detalhes.length).toBeGreaterThanOrEqual(4);
@@ -79,56 +81,60 @@ describe("criar encomenda", () => {
 
 describe("listar encomendas", () => {
   it("ordena da data mais próxima para a mais distante", async () => {
-    await criar(umaEncomenda({ cliente: "Longe", dataEntrega: diaFuturo(12) }));
-    await criar(umaEncomenda({ cliente: "Perto", dataEntrega: diaFuturo(11) }));
+    await createOrder(
+      buildOrder({ cliente: "Longe", dataEntrega: daysFromToday(12) }),
+    );
+    await createOrder(
+      buildOrder({ cliente: "Perto", dataEntrega: daysFromToday(11) }),
+    );
 
     const res = await app.inject({
       method: "GET",
       url: "/encomendas",
-      headers: comSenha,
+      headers: authHeaders,
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.json().map((e: { cliente: string }) => e.cliente)).toEqual([
+    expect(res.json().map((o: { cliente: string }) => o.cliente)).toEqual([
       "Perto",
       "Longe",
     ]);
   });
 
   it("filtra por data", async () => {
-    await criar(umaEncomenda({ dataEntrega: diaFuturo(11) }));
-    await criar(umaEncomenda({ dataEntrega: diaFuturo(12) }));
+    await createOrder(buildOrder({ dataEntrega: daysFromToday(11) }));
+    await createOrder(buildOrder({ dataEntrega: daysFromToday(12) }));
 
     const res = await app.inject({
       method: "GET",
-      url: `/encomendas?data=${diaFuturo(11)}`,
-      headers: comSenha,
+      url: `/encomendas?data=${daysFromToday(11)}`,
+      headers: authHeaders,
     });
 
     expect(res.json()).toHaveLength(1);
-    expect(res.json()[0].dataEntrega).toBe(diaFuturo(11));
+    expect(res.json()[0].dataEntrega).toBe(daysFromToday(11));
   });
 
   it("filtra por status", async () => {
-    const primeira = (await criar()).json();
-    await criar(umaEncomenda({ cliente: "Outra" }));
-    await atualizar(primeira.id, { status: "PREPARO" });
+    const first = (await createOrder()).json();
+    await createOrder(buildOrder({ cliente: "Outra" }));
+    await updateOrder(first.id, { status: "PREPARO" });
 
     const res = await app.inject({
       method: "GET",
       url: "/encomendas?status=PREPARO",
-      headers: comSenha,
+      headers: authHeaders,
     });
 
     expect(res.json()).toHaveLength(1);
-    expect(res.json()[0].id).toBe(primeira.id);
+    expect(res.json()[0].id).toBe(first.id);
   });
 
   it("recusa um filtro inválido (400)", async () => {
     const res = await app.inject({
       method: "GET",
       url: "/encomendas?status=XX",
-      headers: comSenha,
+      headers: authHeaders,
     });
 
     expect(res.statusCode).toBe(400);
@@ -137,18 +143,18 @@ describe("listar encomendas", () => {
 
 describe("atualizar encomenda", () => {
   it("muda o status", async () => {
-    const { id } = (await criar()).json();
+    const { id } = (await createOrder()).json();
 
-    const res = await atualizar(id, { status: "PREPARO" });
+    const res = await updateOrder(id, { status: "PREPARO" });
 
     expect(res.statusCode).toBe(200);
     expect(res.json().status).toBe("PREPARO");
   });
 
   it("muda vários campos de uma vez e mantém o resto", async () => {
-    const { id } = (await criar()).json();
+    const { id } = (await createOrder()).json();
 
-    const res = await atualizar(id, {
+    const res = await updateOrder(id, {
       produto: "Panetone",
       telefone: "(73) 3333-4444",
     });
@@ -161,15 +167,15 @@ describe("atualizar encomenda", () => {
   });
 
   it("devolve 404 para uma encomenda que não existe", async () => {
-    const res = await atualizar(999999, { status: "PREPARO" });
+    const res = await updateOrder(999999, { status: "PREPARO" });
 
     expect(res.statusCode).toBe(404);
   });
 
   it("recusa um corpo vazio (400)", async () => {
-    const { id } = (await criar()).json();
+    const { id } = (await createOrder()).json();
 
-    const res = await atualizar(id, {});
+    const res = await updateOrder(id, {});
 
     expect(res.statusCode).toBe(400);
   });
@@ -178,7 +184,7 @@ describe("atualizar encomenda", () => {
     const res = await app.inject({
       method: "PATCH",
       url: "/encomendas/abc",
-      headers: comSenha,
+      headers: authHeaders,
       payload: { status: "PREPARO" },
     });
 
@@ -186,9 +192,9 @@ describe("atualizar encomenda", () => {
   });
 
   it("recusa mudar a data para o passado (400)", async () => {
-    const { id } = (await criar()).json();
+    const { id } = (await createOrder()).json();
 
-    const res = await atualizar(id, { dataEntrega: diaFuturo(-1) });
+    const res = await updateOrder(id, { dataEntrega: daysFromToday(-1) });
 
     expect(res.statusCode).toBe(400);
   });
@@ -196,21 +202,30 @@ describe("atualizar encomenda", () => {
 
 describe("remover encomenda", () => {
   it("remove (204) e depois devolve 404", async () => {
-    const { id } = (await criar()).json();
+    const { id } = (await createOrder()).json();
 
-    const remocao = await app.inject({
+    const first = await app.inject({
       method: "DELETE",
       url: `/encomendas/${id}`,
-      headers: comSenha,
+      headers: authHeaders,
     });
-    const repetida = await app.inject({
+    const second = await app.inject({
       method: "DELETE",
       url: `/encomendas/${id}`,
-      headers: comSenha,
+      headers: authHeaders,
     });
 
-    expect(remocao.statusCode).toBe(204);
-    expect(repetida.statusCode).toBe(404);
-    expect(await prisma.encomenda.count()).toBe(0);
+    expect(first.statusCode).toBe(204);
+    expect(second.statusCode).toBe(404);
+    expect(await prisma.order.count()).toBe(0);
+  });
+});
+
+describe("rotas gerais", () => {
+  it("devolve 404 padronizado em português para rota inexistente", async () => {
+    const res = await app.inject({ method: "GET", url: "/nao-existe" });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({ erro: "Rota não encontrada" });
   });
 });

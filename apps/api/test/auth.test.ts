@@ -1,18 +1,18 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
-  comSenha,
-  diaFuturo,
-  iniciarApp,
-  limparBanco,
+  authHeaders,
+  buildOrder,
+  daysFromToday,
   prisma,
-  umaEncomenda,
+  resetDatabase,
+  startApp,
   type App,
 } from "./helpers";
 
 let app: App;
 
 beforeAll(async () => {
-  app = await iniciarApp();
+  app = await startApp();
 });
 
 afterAll(async () => {
@@ -20,7 +20,7 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-beforeEach(limparBanco);
+beforeEach(resetDatabase);
 
 describe("rotas da Dona Marta (protegidas)", () => {
   it.each([
@@ -47,7 +47,7 @@ describe("rotas da Dona Marta (protegidas)", () => {
     const res = await app.inject({
       method: "GET",
       url: "/encomendas",
-      headers: comSenha,
+      headers: authHeaders,
     });
 
     expect(res.statusCode).toBe(200);
@@ -67,7 +67,7 @@ describe("rotas da Dona Marta (protegidas)", () => {
     await app.inject({
       method: "POST",
       url: "/encomendas",
-      payload: umaEncomenda(),
+      payload: buildOrder(),
     });
 
     const res = await app.inject({ method: "GET", url: "/encomendas" });
@@ -81,7 +81,7 @@ describe("rotas do cliente (públicas)", () => {
     const res = await app.inject({
       method: "POST",
       url: "/encomendas",
-      payload: umaEncomenda(),
+      payload: buildOrder(),
     });
 
     expect(res.statusCode).toBe(201);
@@ -90,7 +90,7 @@ describe("rotas do cliente (públicas)", () => {
   it("consultar disponibilidade não exige senha", async () => {
     const res = await app.inject({
       method: "GET",
-      url: `/disponibilidade?data=${diaFuturo(10)}`,
+      url: `/disponibilidade?data=${daysFromToday(10)}`,
     });
 
     expect(res.statusCode).toBe(200);
@@ -100,12 +100,12 @@ describe("rotas do cliente (públicas)", () => {
     await app.inject({
       method: "POST",
       url: "/encomendas",
-      payload: umaEncomenda(),
+      payload: buildOrder(),
     });
 
     const res = await app.inject({
       method: "GET",
-      url: `/disponibilidade?data=${diaFuturo(10)}`,
+      url: `/disponibilidade?data=${daysFromToday(10)}`,
     });
 
     expect(Object.keys(res.json()).sort()).toEqual([
