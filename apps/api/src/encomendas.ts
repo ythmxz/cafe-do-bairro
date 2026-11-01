@@ -8,6 +8,7 @@ import {
 import { prisma } from "./db";
 import { hojeNoBrasil, paraData, paraTexto } from "./datas";
 import { ErroHttp, naoEncontrado, validar } from "./erros";
+import { reservarVaga } from "./limite";
 
 const paramsSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -41,8 +42,11 @@ export async function encomendasRoutes(app: FastifyInstance) {
     const dados = validar(novaEncomendaSchema, req.body);
     garantirDataNaoPassada(dados.dataEntrega);
 
-    const criada = await prisma.encomenda.create({
-      data: { ...dados, dataEntrega: paraData(dados.dataEntrega) },
+    const criada = await prisma.$transaction(async (tx) => {
+      await reservarVaga(tx, dados.dataEntrega);
+      return tx.encomenda.create({
+        data: { ...dados, dataEntrega: paraData(dados.dataEntrega) },
+      });
     });
 
     return reply.code(201).send(serializar(criada));
@@ -68,15 +72,27 @@ export async function encomendasRoutes(app: FastifyInstance) {
     if (dados.dataEntrega) garantirDataNaoPassada(dados.dataEntrega);
 
     try {
-      const atualizada = await prisma.encomenda.update({
-        where: { id },
-        data: {
-          ...dados,
-          dataEntrega: dados.dataEntrega
-            ? paraData(dados.dataEntrega)
-            : undefined,
-        },
+      const atualizada = await prisma.$transaction(async (tx) => {
+        if (dados.dataEntrega) {
+          const atual = await tx.encomenda.findUnique({ where: { id } });
+          if (!atual) throw new ErroHttp(404, "Encomenda não encontrada");
+
+          if (paraTexto(atual.dataEntrega) !== dados.dataEntrega) {
+            await reservarVaga(tx, dados.dataEntrega);
+          }
+        }
+
+        return tx.encomenda.update({
+          where: { id },
+          data: {
+            ...dados,
+            dataEntrega: dados.dataEntrega
+              ? paraData(dados.dataEntrega)
+              : undefined,
+          },
+        });
       });
+
       return serializar(atualizada);
     } catch (erro) {
       if (naoEncontrado(erro))

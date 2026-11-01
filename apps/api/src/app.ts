@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import { LIMITE_DIARIO } from "@cafe/shared";
 import { encomendasRoutes } from "./encomendas";
 import { ErroHttp } from "./erros";
+import { disponibilidadeRoutes } from "./disponibilidade";
 
 export function buildApp() {
   const app = Fastify({ logger: true });
@@ -22,16 +23,15 @@ export function buildApp() {
     const status = erro.statusCode ?? 500;
     if (status >= 500) app.log.error(erro);
 
-    return reply
-      .code(status)
-      .send({
-        erro: status >= 500 ? "Erro interno do servidor" : erro.message,
-      });
+    return reply.code(status).send({
+      erro: status >= 500 ? "Erro interno do servidor" : erro.message,
+    });
   });
 
   app.get("/saude", async () => ({ ok: true, limiteDiario: LIMITE_DIARIO }));
 
   app.register(encomendasRoutes, { prefix: "/encomendas" });
+  app.register(disponibilidadeRoutes, { prefix: "/disponibilidade" });
 
   return app;
 }
