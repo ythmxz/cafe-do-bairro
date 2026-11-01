@@ -22,15 +22,20 @@ function mensagemDoErro(erro: unknown): string {
   return erro instanceof Error ? erro.message : "Requisição inválida";
 }
 
-export function buildApp() {
-  const app = Fastify({ logger: true });
+type OpcoesDoApp = { limitarRequisicoes?: boolean };
+
+export function buildApp(opcoes: OpcoesDoApp = {}) {
+  const app = Fastify({ logger: process.env.NODE_ENV !== "test" });
 
   app.register(cors, {
     origin: process.env.WEB_URL ?? "http://localhost:3000",
     methods: ["GET", "POST", "PATCH", "DELETE"],
   });
 
-  app.register(rateLimit, { global: false });
+  app.register(rateLimit, {
+    global: false,
+    allowList: () => opcoes.limitarRequisicoes === false,
+  });
 
   app.setErrorHandler((erro, _req, reply) => {
     if (erro instanceof ErroHttp) {
