@@ -1,7 +1,7 @@
-import type { FastifyInstance } from "fastify";
 import type { CreateOrderInput } from "@cafe/shared";
-import { buildApp, type AppOptions } from "../src/app";
-import { toIsoDate, todayInBrazil } from "../src/dates";
+import type { FastifyInstance } from "fastify";
+import { type AppOptions, buildApp } from "../src/app";
+import { todayInBrazil, toIsoDate } from "../src/dates";
 import { prisma } from "../src/db";
 import { TEST_ADMIN_TOKEN } from "./env";
 

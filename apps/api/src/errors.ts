@@ -1,5 +1,5 @@
-import { z } from "zod";
 import type { ErrorDetail } from "@cafe/shared";
+import type { z } from "zod";
 import { Prisma } from "../generated/client";
 
 export class HttpError extends Error {

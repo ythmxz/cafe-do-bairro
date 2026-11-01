@@ -1,6 +1,6 @@
 import { DAILY_LIMIT } from "@cafe/shared";
-import type { Transaction } from "./db";
 import { toBrazilianDate, toDate } from "./dates";
+import type { Transaction } from "./db";
 import { HttpError } from "./errors";
 
 const MS_PER_DAY = 86_400_000;

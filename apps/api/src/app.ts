@@ -1,7 +1,7 @@
-import Fastify, { type FastifyInstance } from "fastify";
+import type { ApiError } from "@cafe/shared";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
-import { type ApiError } from "@cafe/shared";
+import Fastify, { type FastifyInstance } from "fastify";
 import { availabilityRoutes } from "./availability";
 import { HttpError } from "./errors";
 import { orderRoutes } from "./orders";

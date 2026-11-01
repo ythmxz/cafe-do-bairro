@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
+  type App,
   authHeaders,
   buildOrder,
   daysFromToday,
   prisma,
   resetDatabase,
   startApp,
-  type App,
 } from "./helpers";
 
 let app: App;
@@ -32,12 +32,12 @@ function createOrderOn(date: string, customer = "Cliente") {
   });
 }
 
-async function fillDay(date: string): Promise<number[]> {
+async function fillDay(date: string): Promise<[number, ...number[]]> {
   const ids: number[] = [];
   for (let i = 1; i <= 5; i++) {
     ids.push((await createOrderOn(date, `Cliente ${i}`)).json().id);
   }
-  return ids;
+  return ids as [number, ...number[]];
 }
 
 function updateOrder(id: number, body: object) {
@@ -121,7 +121,7 @@ describe("o limite não pode travar a edição normal", () => {
   it("mudar o status de uma encomenda em dia lotado funciona", async () => {
     const [id] = await fillDay(targetDay);
 
-    const res = await updateOrder(id!, { status: "PREPARO" });
+    const res = await updateOrder(id, { status: "PREPARO" });
 
     expect(res.statusCode).toBe(200);
     expect(res.json().status).toBe("PREPARO");
@@ -130,7 +130,7 @@ describe("o limite não pode travar a edição normal", () => {
   it("reenviar a mesma data em dia lotado funciona", async () => {
     const [id] = await fillDay(targetDay);
 
-    const res = await updateOrder(id!, {
+    const res = await updateOrder(id, {
       dataEntrega: targetDay,
       produto: "Bolo de fubá",
     });
@@ -156,7 +156,7 @@ describe("mover encomendas entre dias", () => {
     const ids = await fillDay(targetDay);
     const freeDate = daysFromToday(23);
 
-    const res = await updateOrder(ids[0]!, { dataEntrega: freeDate });
+    const res = await updateOrder(ids[0], { dataEntrega: freeDate });
     const availability = await app.inject({
       method: "GET",
       url: `/disponibilidade?data=${targetDay}`,

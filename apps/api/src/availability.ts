@@ -1,8 +1,8 @@
+import { type Availability, DAILY_LIMIT, isoDateSchema } from "@cafe/shared";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { DAILY_LIMIT, isoDateSchema, type Availability } from "@cafe/shared";
-import { prisma } from "./db";
 import { countOrdersOn } from "./daily-limit";
+import { prisma } from "./db";
 import { parseOrThrow } from "./errors";
 
 const querySchema = z.object({

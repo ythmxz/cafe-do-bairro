@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-serif: var(--font-serif), Georgia, serif;
+
+  /* Paleta "cor de café com leite" e tons terrosos */
+  --color-cream: #fbf6ee;
+  --color-latte: #f2e6d5;
+  --color-biscuit: #e4d1b8;
+  --color-caramel: #b5693a;
+  --color-terracotta: #964b24;
+  --color-cinnamon: #704832;
+  --color-espresso: #362218;
+  --color-sage: #3f6b4e;
+}
+
+html {
+  scroll-behavior: smooth;
+}
