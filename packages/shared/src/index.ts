@@ -25,7 +25,7 @@ const dataISO = z
     );
   });
 
-export const novaEncomendaSchema = z.object({
+export const novaEncomendaSchema = z.strictObject({
   cliente: z.string().trim().min(2, "Informe o nome do cliente"),
   telefone,
   produto: z.string().trim().min(2, "Informe o produto"),
@@ -34,7 +34,7 @@ export const novaEncomendaSchema = z.object({
 
 export const atualizarEncomendaSchema = novaEncomendaSchema
   .partial()
-  .extend({ staus: z.enum(STATUS).optional() })
+  .extend({ status: z.enum(STATUS).optional() })
   .refine(
     (dados) => Object.keys(dados).length > 0,
     "Envie pelo menos um campo",
