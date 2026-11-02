@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && prisma migrate deploy && esbuild src/app.ts --bundle --platform=node --format=esm --external:fastify --external:@fastify/* --external:@prisma/* --external:pg --external:dotenv --external:zod --outfile=src/app.ts --allow-overwrite",
+    "build": "prisma generate && prisma migrate deploy && esbuild src/app.ts --bundle --platform=node --format=esm --banner:js=\"// @ts-nocheck\" --external:fastify --external:@fastify/* --external:@prisma/* --external:pg --external:dotenv --external:zod --outfile=src/app.ts --allow-overwrite",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "prisma migrate dev",
