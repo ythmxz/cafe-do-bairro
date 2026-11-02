@@ -1,15 +1,17 @@
 # Café do Bairro — PROSEL 2026.2 TecnoJr
 
-Solução completa (**Landing Page + Painel de Gestão Mobile + API REST de Encomendas**) desenvolvida para o **Café do Bairro**, da Dona Marta, como entrega do processo seletivo
-**PROSEL 2026.2 da TecnoJr**.
+Solução completa (**Landing Page + Painel de Gestão Mobile + API REST de Encomendas**) desenvolvida para o **Café do Bairro**, da Dona Marta, como entrega do processo seletivo **PROSEL 2026.2 da TecnoJr**.
 
 ## Entendimento do Problema e Visão de Produto
 
 A partir da entrevista com a Dona Marta, identificamos quatro dores principais no dia a dia do café:
 
 1. **Perda de pedidos e sobrecarga no caderno de papel:** as encomendas chegam misturadas no WhatsApp, são anotadas manualmente e já houve perda de pedidos e marcação acima da capacidade diária (**máximo de 5 encomendas por dia**).
+
 2. **Tempo perdido com perguntas repetitivas:** mesmo tendo Instagram, ela responde cerca de 20 vezes por dia às mesmas dúvidas sobre **cardápio, horário e endereço**.
+
 3. **Familiaridade apenas com o celular:** a solução não pode exigir computador nem fluxos complexos — tanto os clientes quanto a Dona Marta acessam tudo pelo celular.
+
 4. **Identidade acolhedora:** o visual precisa transmitir aconchego, em tons terrosos de café com leite, valorizando o desenho de xícara feito pelo filho dela.
 
 ## Arquitetura e Stack Tecnológica
@@ -45,9 +47,9 @@ cafe-do-bairro/
 
 ### Pré-requisitos
 
-• Node.js 20+ e pnpm 10+
+- Node.js 20+ e pnpm 10+
 
-• Docker (para subir o banco PostgreSQL)
+- Docker (para subir o banco PostgreSQL)
 
 ### 1. Instalar as dependências
 
