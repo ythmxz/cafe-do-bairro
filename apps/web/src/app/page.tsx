@@ -1,6 +1,8 @@
 import { DAILY_LIMIT } from "@cafe/shared";
 import Link from "next/link";
 import { CupLogo } from "@/components/cup-logo";
+import { OrderForm } from "@/components/order-form";
+import { SelectCakeButton } from "@/components/select-cake-button";
 import {
   buildWhatsAppUrl,
   CAFE_INFO,
@@ -38,13 +40,11 @@ function MenuCard({ item }: { item: MenuItem }) {
 
       {item.orderable ? (
         <div className="mt-4 pt-3 border-t border-biscuit/70">
-          <a
-            href="#encomendar"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-terracotta hover:text-espresso"
-          >
-            Encomendar este bolo
-            <span aria-hidden="true">→</span>
-          </a>
+          {item.orderable ? (
+            <div className="mt-4 pt-3 border-t border-biscuit/70">
+              <SelectCakeButton productName={item.name} />
+            </div>
+          ) : null}
         </div>
       ) : null}
     </article>
@@ -56,7 +56,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Cabeçalho fixo pensato para tela de celular */}
+      {/* Cabeçalho fixo pensado para tela de celular */}
       <header className="sticky top-0 z-30 border-b border-biscuit/80 bg-cream/95 backdrop-blur-xs">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <a href="#topo" className="flex items-center gap-2.5 text-espresso">
@@ -98,7 +98,7 @@ export default function HomePage() {
       </header>
 
       <main id="topo" className="flex-1">
-        {/* Hero acolhedor */}
+        {/* Hero */}
         <section className="border-b border-biscuit/80 bg-linear-to-b from-latte/70 to-cream px-4 py-10 sm:px-6 sm:py-16">
           <div className="mx-auto max-w-3xl text-center">
             <p className="inline-flex items-center gap-2 rounded-full border border-biscuit bg-cream px-3.5 py-1 text-xs font-medium text-cinnamon">
@@ -242,28 +242,36 @@ export default function HomePage() {
           id="encomendar"
           className="scroll-mt-16 border-y border-biscuit bg-latte/60 px-4 py-12 sm:px-6 sm:py-16"
         >
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="text-xs font-semibold uppercase tracking-widest text-terracotta">
-              Encomendas sem fila
-            </span>
-            <h2 className="mt-1 font-serif text-2xl font-bold text-espresso sm:text-3xl">
-              Reserve seu bolo para retirar no café
-            </h2>
-            <p className="mt-2 text-sm sm:text-base text-cinnamon">
-              A {CAFE_INFO.owner} prepara até {DAILY_LIMIT} bolos por dia. Se
-              preferir combinar detalhes diretamente com ela, é só chamar no
-              WhatsApp:
-            </p>
-            <div className="mt-6">
+          <div className="mx-auto max-w-2xl">
+            <div className="text-center">
+              <span className="text-xs font-semibold uppercase tracking-widest text-terracotta">
+                Encomendas sem fila
+              </span>
+              <h2 className="mt-1 font-serif text-2xl font-bold text-espresso sm:text-3xl">
+                Reserve seu bolo para retirar no café
+              </h2>
+              <p className="mt-2 text-sm sm:text-base text-cinnamon">
+                Escolha o bolo e a data de retirada. O sistema confere na hora
+                se ainda há vaga entre os {DAILY_LIMIT} bolos diários da{" "}
+                {CAFE_INFO.owner}.
+              </p>
+            </div>
+
+            <div className="mt-8">
+              <OrderForm />
+            </div>
+
+            <p className="mt-6 text-center text-xs sm:text-sm text-cinnamon">
+              Prefere combinar direto com a {CAFE_INFO.owner}?{" "}
               <a
                 href={whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-xl bg-sage px-6 py-3.5 text-base font-semibold text-cream shadow-xs transition hover:opacity-95"
+                className="font-semibold text-terracotta underline decoration-caramel underline-offset-4 hover:text-espresso"
               >
-                Encomendar pelo WhatsApp ({CAFE_INFO.whatsappDisplay})
+                Chamar no WhatsApp ({CAFE_INFO.whatsappDisplay})
               </a>
-            </div>
+            </p>
           </div>
         </section>
 

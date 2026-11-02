@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+    <title>Café do Bairro</title>
+    <rect width="64" height="64" rx="14" fill="#fbf6ee" />
+    <path
+        d="M24 18C22 14 26 11 24 7"
+        stroke="#964b24"
+        stroke-width="2.6"
+        stroke-linecap="round"
+    />
+    <path
+        d="M33 16C31 12 35 9 33 5"
+        stroke="#964b24"
+        stroke-width="2.6"
+        stroke-linecap="round"
+    />
+    <path
+        d="M42 18C40 14 44 11 42 7"
+        stroke="#964b24"
+        stroke-width="2.6"
+        stroke-linecap="round"
+    />
+    <path
+        d="M14 25H48L45 43C44.2 48.2 39.7 52 34.4 52H27.6C22.3 52 17.8 48.2 17 43L14 25Z"
+        fill="#f2e6d5"
+        stroke="#362218"
+        stroke-width="2.8"
+        stroke-linejoin="round"
+    />
+    <path
+        d="M47.5 29H51C54.9 29 58 32.1 58 36C58 39.9 54.9 43 51 43H45.5"
+        stroke="#362218"
+        stroke-width="2.8"
+        stroke-linecap="round"
+    />
+    <path
+        d="M10 56C20 58.5 42 58.5 52 56"
+        stroke="#964b24"
+        stroke-width="3"
+        stroke-linecap="round"
+    />
+</svg>
