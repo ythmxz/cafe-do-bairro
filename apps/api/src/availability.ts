@@ -1,9 +1,9 @@
 import { type Availability, DAILY_LIMIT, isoDateSchema } from "@cafe/shared";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { countOrdersOn } from "./daily-limit";
-import { prisma } from "./db";
-import { parseOrThrow } from "./errors";
+import { countOrdersOn } from "./daily-limit.js";
+import { prisma } from "./db.js";
+import { parseOrThrow } from "./errors.js";
 
 const querySchema = z.object({
   data: isoDateSchema,

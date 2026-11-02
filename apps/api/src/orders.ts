@@ -9,12 +9,12 @@ import {
 } from "@cafe/shared";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import type { Order as OrderRecord, Prisma } from "../generated/client";
-import { requireAdmin } from "./auth";
-import { reserveSlot } from "./daily-limit";
-import { toDate, todayInBrazil, toIsoDate } from "./dates";
-import { prisma } from "./db";
-import { HttpError, isNotFoundError, parseOrThrow } from "./errors";
+import type { Order as OrderRecord, Prisma } from "../generated/client.js";
+import { requireAdmin } from "./auth.js";
+import { reserveSlot } from "./daily-limit.js";
+import { toDate, todayInBrazil, toIsoDate } from "./dates.js";
+import { prisma } from "./db.js";
+import { HttpError, isNotFoundError, parseOrThrow } from "./errors.js";
 
 const paramsSchema = z.object({
   id: z.coerce.number().int().positive(),

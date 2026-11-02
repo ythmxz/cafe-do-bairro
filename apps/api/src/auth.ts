@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { FastifyRequest } from "fastify";
-import { HttpError } from "./errors";
+import { HttpError } from "./errors.js";
 
 function safeEqual(a: string, b: string): boolean {
   const hashA = createHash("sha256").update(a).digest();

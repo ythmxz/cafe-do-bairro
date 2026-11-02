@@ -2,9 +2,9 @@ import type { ApiError } from "@cafe/shared";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import Fastify, { type FastifyInstance } from "fastify";
-import { availabilityRoutes } from "./availability";
-import { HttpError } from "./errors";
-import { orderRoutes } from "./orders";
+import { availabilityRoutes } from "./availability.js";
+import { HttpError } from "./errors.js";
+import { orderRoutes } from "./orders.js";
 
 export type AppOptions = {
   rateLimit?: boolean;
@@ -69,3 +69,5 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
 
   return app;
 }
+
+export default buildApp();

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { buildApp } from "./app";
+import { buildApp } from "./app.js";
 
 const adminToken = process.env.ADMIN_TOKEN;
 if (!adminToken || adminToken.length < 16) {

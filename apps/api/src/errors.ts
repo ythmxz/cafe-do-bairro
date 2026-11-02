@@ -1,6 +1,6 @@
 import type { ErrorDetail } from "@cafe/shared";
 import type { z } from "zod";
-import { Prisma } from "../generated/client";
+import { Prisma } from "../generated/client.js";
 
 export class HttpError extends Error {
   constructor(

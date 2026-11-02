@@ -2,9 +2,16 @@
   "name": "@cafe/shared",
   "private": true,
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "node": "./dist/index.js",
+      "default": "./src/index.ts"
+    }
+  },
   "types": "./src/index.ts",
   "scripts": {
+    "build": "tsc",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
