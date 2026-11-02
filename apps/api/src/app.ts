@@ -1,3 +1,4 @@
+import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ApiError } from "@cafe/shared";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
@@ -70,4 +71,15 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
   return app;
 }
 
-export default buildApp();
+let vercelApp: FastifyInstance | null = null;
+
+export default async function handler(
+  req: IncomingMessage,
+  res: ServerResponse,
+): Promise<void> {
+  if (!vercelApp) {
+    vercelApp = buildApp();
+    await vercelApp.ready();
+  }
+  vercelApp.server.emit("request", req, res);
+}
