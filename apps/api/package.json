@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "pnpm --filter @cafe/shared build && prisma generate && prisma migrate deploy",
+    "build": "prisma generate && prisma migrate deploy && esbuild src/app.ts --bundle --platform=node --format=esm --external:fastify --external:@fastify/* --external:@prisma/* --external:pg --external:dotenv --external:zod --outfile=src/app.ts --allow-overwrite",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "prisma migrate dev",
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
+    "esbuild": "^0.28.2",
     "prisma": "^7.10.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
