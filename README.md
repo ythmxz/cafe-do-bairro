@@ -125,14 +125,14 @@ pnpm lint
 
 Base URL padrão: <http://localhost:3333>
 
-| Método | Rota                               | Acesso            | Descrição                                                                                       |
-| ------ | ---------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------- |
-| GET    | `/saude`                           | Público           | Verifica status da API e retorna o limite diário (5).                                           |
-| GET    | `/disponibilidade?data=AAAA-MM-DD` | Público           | Retorna total de vagas, ocupadas e disponíveis na data sem expor dados de clientes.             |
-| POST   | `/encomendas`                      | Público           | Cria uma nova encomenda (status inicial RECEBIDA). Retorna 409 se o dia já tiver 5 encomendas.  |
-| GET    | `/encomendas?data=&status=`        | Restrito (Bearer) | Lista encomendas ordenadas por data de entrega, com filtros opcionais de data e status.         |
-| PATCH  | `/encomendas/:id`                  | Restrito (Bearer) | Atualiza campos ou status (RECEBIDA, PREPARO, ENTREGUE). Valida limite diário caso a data mude. |
-| DELETE | `/encomendas/:id`                  | Restrito (Bearer) | Remove uma encomenda (204 No Content).                                                          |
+| Método | Rota                               | Acesso            | Descrição                                                                                             |
+| ------ | ---------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| GET    | `/saude`                           | Público           | Verifica status de saúde da API (`{ ok: true }`).                                                     |
+| GET    | `/disponibilidade?data=AAAA-MM-DD` | Público           | Retorna total de vagas, ocupadas e disponíveis na data sem expor dados de clientes.                   |
+| POST   | `/encomendas`                      | Público           | Cria uma nova encomenda (status inicial `RECEBIDA`). Retorna 409 se o dia já tiver 5 encomendas.      |
+| GET    | `/encomendas?data=&status=`        | Restrito (Bearer) | Lista encomendas ordenadas por data de entrega, com filtros opcionais de data e status.               |
+| PATCH  | `/encomendas/:id`                  | Restrito (Bearer) | Atualiza campos ou status (`RECEBIDA`, `PREPARO`, `ENTREGUE`). Valida limite diário caso a data mude. |
+| DELETE | `/encomendas/:id`                  | Restrito (Bearer) | Remove uma encomenda (204 No Content).                                                                |
 
 ### Exemplo de criação de encomenda (`POST /encomendas`)
 
@@ -163,4 +163,4 @@ Resposta (201 Created):
 
 ## Licença
 
-Distribuído sob a licença MIT `/LICENSE`.
+Distribuído sob a licença [MIT LICENSE](LICENSE).
